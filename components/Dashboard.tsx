@@ -2,23 +2,24 @@
 import React, { useMemo } from 'react';
 import { ChurchEvent } from '../types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
-import { DollarSign, Calendar, TrendingUp, AlertCircle } from 'lucide-react';
+import { DollarSign, Calendar, TrendingUp, CheckCircle } from 'lucide-react';
 
 interface DashboardProps {
   events: ChurchEvent[];
 }
 
-const COLORS = ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#f59e0b', '#10b981'];
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#8b5cf6'];
 
 const Dashboard: React.FC<DashboardProps> = ({ events }) => {
   const stats = useMemo(() => {
-    const activeEvents = events.filter(e => !e.isArchived);
+    const activeEvents = events.filter(e => e.status === 'active' || !e.status);
+    const completedEvents = events.filter(e => e.status === 'completed');
+    
     const totalBudget = events.reduce((acc, e) => {
       return acc + e.items.reduce((iAcc, item) => iAcc + (item.actualPrice || item.estimatedPrice), 0);
     }, 0);
     
     const yearTotal = events.reduce((acc, e) => {
-      // Extrai o ano diretamente da string YYYY-MM-DD para evitar erro de fuso
       const year = parseInt(e.date.split('-')[0]);
       if (year === new Date().getFullYear()) {
         return acc + e.items.reduce((iAcc, item) => iAcc + (item.actualPrice || item.estimatedPrice), 0);
@@ -26,12 +27,22 @@ const Dashboard: React.FC<DashboardProps> = ({ events }) => {
       return acc;
     }, 0);
 
-    const chartData = events.map(e => ({
-      name: e.name.length > 15 ? e.name.substring(0, 12) + '...' : e.name,
-      total: e.items.reduce((acc, i) => acc + (i.actualPrice || i.estimatedPrice), 0)
-    })).sort((a, b) => b.total - a.total).slice(0, 6);
+    const chartData = events
+      .filter(e => e.status !== 'cancelled')
+      .map(e => ({
+        name: e.name.length > 15 ? e.name.substring(0, 12) + '...' : e.name,
+        total: e.items.reduce((acc, i) => acc + (i.actualPrice || i.estimatedPrice), 0)
+      }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 6);
 
-    return { activeEventsCount: activeEvents.length, totalBudget, yearTotal, chartData };
+    return { 
+      activeEventsCount: activeEvents.length, 
+      completedEventsCount: completedEvents.length,
+      totalBudget, 
+      yearTotal, 
+      chartData 
+    };
   }, [events]);
 
   return (
@@ -82,12 +93,12 @@ const Dashboard: React.FC<DashboardProps> = ({ events }) => {
 
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-start justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Status Financeiro</p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-1">Saudável</h3>
-            <p className="text-xs text-slate-500 mt-2 font-medium">Todos orçamentos ok</p>
+            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Eventos Concluídos</p>
+            <h3 className="text-2xl font-bold text-slate-900 mt-1">{stats.completedEventsCount}</h3>
+            <p className="text-xs text-emerald-600 mt-2 font-medium">Histórico de sucesso</p>
           </div>
-          <div className="p-3 bg-slate-50 rounded-2xl text-slate-600">
-            <AlertCircle className="w-6 h-6" />
+          <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600">
+            <CheckCircle className="w-6 h-6" />
           </div>
         </div>
       </div>

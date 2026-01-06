@@ -23,19 +23,21 @@ export enum PaymentPlan {
   INSTALLMENTS = 'Parcelado'
 }
 
+export type EventStatus = 'active' | 'completed' | 'cancelled';
+
 export interface Budget {
   id: string;
   name: string;
   category: ItemCategory;
-  estimatedPrice: number;
-  actualPrice: number;
+  estimatedPrice: number; // Agora tratado como "Cotado"
+  actualPrice: number;    // Agora tratado como "Confirmado"
+  discrepancyNotes?: string; // Observação para diferença de valores
   supplier: string;
   status: ItemStatus;
   notes?: string;
-  // Payment details (only used when status is CONFIRMED)
   paymentMethod?: PaymentMethod;
   reimbursementRecipient?: string;
-  reimbursementDetails?: string; // PIX or Bank info
+  reimbursementDetails?: string; 
   paymentPlan?: PaymentPlan;
   installmentsCount?: number;
 }
@@ -47,6 +49,7 @@ export interface ChurchEvent {
   description: string;
   items: Budget[];
   isArchived: boolean;
+  status: EventStatus;
 }
 
 export interface AppState {

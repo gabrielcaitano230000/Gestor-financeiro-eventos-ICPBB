@@ -1,31 +1,32 @@
 
 import React from 'react';
 import { ChurchEvent } from '../types';
-import { Calendar, Clock, PlusCircle } from 'lucide-react';
+import { Calendar, Clock, PlusCircle, CheckCircle, Ban } from 'lucide-react';
 
 interface EventListProps {
   events: ChurchEvent[];
   onSelectEvent: (event: ChurchEvent) => void;
-  onAddEvent?: () => void; // Prop opcional para o botão de atalho
+  onAddEvent?: () => void;
 }
 
 const EventList: React.FC<EventListProps> = ({ events, onSelectEvent, onAddEvent }) => {
-  // Função auxiliar para criar data local sem erro de fuso horário
   const parseLocalDatePicker = (dateString: string) => {
     const [year, month, day] = dateString.split('-').map(Number);
     return new Date(year, month - 1, day);
   };
 
-  const getDaysRemaining = (dateString: string) => {
-    const eventDate = parseLocalDatePicker(dateString);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const diffTime = eventDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
   const sortedEvents = [...events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  const getStatusDisplay = (event: ChurchEvent) => {
+    switch (event.status) {
+      case 'completed':
+        return { label: 'Concluído', color: 'bg-emerald-500 text-white', icon: <CheckCircle className="w-3 h-3" /> };
+      case 'cancelled':
+        return { label: 'Cancelado', color: 'bg-red-500 text-white', icon: <Ban className="w-3 h-3" /> };
+      default:
+        return { label: 'Em Planejamento', color: 'bg-blue-500 text-white', icon: null };
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -34,7 +35,6 @@ const EventList: React.FC<EventListProps> = ({ events, onSelectEvent, onAddEvent
           <h2 className="text-3xl font-bold text-slate-800">Meus Eventos</h2>
           <p className="text-slate-500">Gerencie o planejamento e orçamento de suas atividades.</p>
         </div>
-        {/* Atalho para novo evento no cabeçalho da lista */}
         {onAddEvent && (
           <button
             onClick={onAddEvent}
@@ -59,28 +59,30 @@ const EventList: React.FC<EventListProps> = ({ events, onSelectEvent, onAddEvent
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {sortedEvents.map((event) => {
-            const daysLeft = getDaysRemaining(event.date);
-            const totalBudget = event.items.reduce((acc, i) => acc + (i.actualPrice || i.estimatedPrice), 0);
-            const isFinished = daysLeft < 0;
-
-            // Formata a data ignorando UTC
+            const totalQuoted = event.items.reduce((acc, i) => acc + i.estimatedPrice, 0);
+            const totalConfirmed = event.items.reduce((acc, i) => acc + i.actualPrice, 0);
+            const statusInfo = getStatusDisplay(event);
             const localDate = parseLocalDatePicker(event.date);
 
             return (
               <button
                 key={event.id}
                 onClick={() => onSelectEvent(event)}
-                className="group text-left bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-300 relative overflow-hidden"
+                className={`group text-left bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-300 relative overflow-hidden ${
+                  event.status === 'cancelled' ? 'opacity-75 grayscale-[0.5]' : ''
+                }`}
               >
                 {/* Status Badge */}
-                <div className={`absolute top-0 right-0 px-4 py-1.5 rounded-bl-2xl text-[10px] font-bold uppercase tracking-widest ${
-                  isFinished ? 'bg-slate-100 text-slate-500' : 'bg-blue-500 text-white'
-                }`}>
-                  {isFinished ? 'Finalizado' : 'Em Planejamento'}
+                <div className={`absolute top-0 right-0 px-4 py-1.5 rounded-bl-2xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 ${statusInfo.color}`}>
+                  {statusInfo.icon}
+                  {statusInfo.label}
                 </div>
 
                 <div className="mb-4">
-                   <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-500 mb-4 group-hover:scale-110 transition-transform">
+                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${
+                     event.status === 'completed' ? 'bg-emerald-50 text-emerald-500' : 
+                     event.status === 'cancelled' ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-500'
+                   }`}>
                     <Calendar className="w-6 h-6" />
                   </div>
                   <h3 className="text-xl font-bold text-slate-800 mb-1 group-hover:text-blue-600 transition-colors">{event.name}</h3>
@@ -94,22 +96,15 @@ const EventList: React.FC<EventListProps> = ({ events, onSelectEvent, onAddEvent
                   {event.description || 'Sem descrição definida.'}
                 </p>
 
-                <div className="flex items-center justify-between mt-auto pt-6 border-t border-slate-50">
+                <div className="grid grid-cols-2 gap-4 mt-auto pt-6 border-t border-slate-50">
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Budget Total</span>
-                    <span className="text-lg font-bold text-slate-900">R$ {totalBudget.toLocaleString('pt-BR')}</span>
+                    <span className="text-[10px] font-bold text-amber-500 uppercase tracking-tighter">Total Cotado</span>
+                    <span className="text-md font-bold text-slate-700">R$ {totalQuoted.toLocaleString('pt-BR')}</span>
                   </div>
-                  
-                  {!isFinished ? (
-                    <div className="text-right">
-                      <span className="text-[10px] font-bold text-blue-400 uppercase tracking-tighter block">Faltam</span>
-                      <span className="text-2xl font-black text-blue-500">{daysLeft} <span className="text-sm font-medium">dias</span></span>
-                    </div>
-                  ) : (
-                    <div className="text-right">
-                      <span className="text-xs font-medium text-slate-400 italic">Encerrado</span>
-                    </div>
-                  )}
+                  <div className="flex flex-col border-l border-slate-50 pl-4">
+                    <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-tighter">Confirmado</span>
+                    <span className="text-md font-bold text-slate-900">R$ {totalConfirmed.toLocaleString('pt-BR')}</span>
+                  </div>
                 </div>
               </button>
             );

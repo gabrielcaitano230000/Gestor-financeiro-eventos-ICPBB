@@ -36,7 +36,8 @@ const App: React.FC = () => {
       date,
       description,
       items: [],
-      isArchived: false
+      isArchived: false,
+      status: 'active'
     };
     setEvents(prev => [...prev, newEvent]);
     setIsAddingEvent(false);
