@@ -16,7 +16,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange, onAdd
       <aside className="w-full md:w-64 bg-blue-600 text-white flex flex-col no-print">
         <div className="p-6 flex items-center gap-3">
           <Church className="w-8 h-8 text-blue-200" />
-          <h1 className="text-xl font-bold tracking-tight">ICPBB Planeja</h1>
+          <h1 className="text-xl font-bold tracking-tight">Financeiro Eventos ICPBB</h1>
         </div>
         
         <nav className="flex-1 px-4 py-4 space-y-2">
