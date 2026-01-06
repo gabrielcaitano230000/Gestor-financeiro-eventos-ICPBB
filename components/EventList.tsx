@@ -1,14 +1,15 @@
 
 import React from 'react';
 import { ChurchEvent } from '../types';
-import { Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock, PlusCircle } from 'lucide-react';
 
 interface EventListProps {
   events: ChurchEvent[];
   onSelectEvent: (event: ChurchEvent) => void;
+  onAddEvent?: () => void; // Prop opcional para o botão de atalho
 }
 
-const EventList: React.FC<EventListProps> = ({ events, onSelectEvent }) => {
+const EventList: React.FC<EventListProps> = ({ events, onSelectEvent, onAddEvent }) => {
   // Função auxiliar para criar data local sem erro de fuso horário
   const parseLocalDatePicker = (dateString: string) => {
     const [year, month, day] = dateString.split('-').map(Number);
@@ -33,6 +34,16 @@ const EventList: React.FC<EventListProps> = ({ events, onSelectEvent }) => {
           <h2 className="text-3xl font-bold text-slate-800">Meus Eventos</h2>
           <p className="text-slate-500">Gerencie o planejamento e orçamento de suas atividades.</p>
         </div>
+        {/* Atalho para novo evento no cabeçalho da lista */}
+        {onAddEvent && (
+          <button
+            onClick={onAddEvent}
+            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-blue-100 transition-all active:scale-95 no-print"
+          >
+            <PlusCircle className="w-5 h-5" />
+            Novo Evento
+          </button>
+        )}
       </header>
 
       {events.length === 0 ? (
@@ -42,7 +53,7 @@ const EventList: React.FC<EventListProps> = ({ events, onSelectEvent }) => {
           </div>
           <h3 className="text-xl font-bold text-slate-800">Nenhum evento criado</h3>
           <p className="text-slate-500 mt-2 max-w-sm">
-            Comece criando o primeiro evento da sua igreja clicando no botão "Novo Evento" na barra lateral.
+            Comece criando o primeiro evento da sua igreja clicando no botão "Novo Evento".
           </p>
         </div>
       ) : (

@@ -73,7 +73,11 @@ const App: React.FC = () => {
       ) : activeTab === 'dashboard' ? (
         <Dashboard events={events} />
       ) : (
-        <EventList events={events} onSelectEvent={(e) => setSelectedEventId(e.id)} />
+        <EventList 
+          events={events} 
+          onSelectEvent={(e) => setSelectedEventId(e.id)} 
+          onAddEvent={() => setIsAddingEvent(true)}
+        />
       )}
 
       {/* New Event Modal */}

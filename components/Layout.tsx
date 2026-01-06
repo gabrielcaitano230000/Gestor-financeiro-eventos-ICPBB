@@ -13,13 +13,24 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange, onAdd
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-50">
       {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-blue-600 text-white flex flex-col no-print">
+      <aside className="w-full md:w-64 bg-blue-600 text-white flex flex-col no-print md:sticky md:top-0 md:h-screen">
         <div className="p-6 flex items-center gap-3">
           <Church className="w-8 h-8 text-blue-200" />
           <h1 className="text-xl font-bold tracking-tight">Financeiro Eventos ICPBB</h1>
         </div>
         
-        <nav className="flex-1 px-4 py-4 space-y-2">
+        {/* Novo Evento moved to top */}
+        <div className="px-4 pb-6">
+          <button
+            onClick={onAddEvent}
+            className="w-full flex items-center justify-center gap-2 bg-blue-400 hover:bg-blue-300 text-white py-3 rounded-xl font-semibold shadow-md transition-all active:scale-95"
+          >
+            <PlusCircle className="w-5 h-5" />
+            Novo Evento
+          </button>
+        </div>
+
+        <nav className="flex-1 px-4 py-2 space-y-2">
           <button
             onClick={() => onTabChange('dashboard')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
@@ -40,16 +51,6 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange, onAdd
             <span className="font-medium">Meus Eventos</span>
           </button>
         </nav>
-        
-        <div className="p-4 border-t border-blue-500">
-          <button
-            onClick={onAddEvent}
-            className="w-full flex items-center justify-center gap-2 bg-blue-400 hover:bg-blue-300 text-white py-3 rounded-xl font-semibold shadow-md transition-all active:scale-95"
-          >
-            <PlusCircle className="w-5 h-5" />
-            Novo Evento
-          </button>
-        </div>
       </aside>
 
       {/* Main Content */}
