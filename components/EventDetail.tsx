@@ -3,8 +3,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ChurchEvent, Budget, ItemStatus, ItemCategory, PaymentMethod, PaymentPlan, EventStatus } from '../types';
 import { 
   ArrowLeft, Plus, Trash2, Printer, 
-  FileText, CreditCard, User, 
-  Wallet, Layers, ListFilter, Edit3, Save, X, CheckCircle, Ban, AlertCircle
+  CreditCard, User, 
+  Layers, ListFilter, Edit3, Save, X, CheckCircle, Ban, AlertCircle
 } from 'lucide-react';
 
 interface EventDetailProps {
@@ -62,6 +62,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
     const itemToAdd: Budget = {
       ...newItem as Budget,
       id: crypto.randomUUID(),
+      status: ItemStatus.PENDING, // Garante que novo item sempre nasce pendente
       estimatedPrice: Number(newItem.estimatedPrice) || 0,
       actualPrice: Number(newItem.actualPrice) || 0,
     };
@@ -108,8 +109,13 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
     return items.filter(i => i.status === statusFilter);
   }, [items, statusFilter]);
 
+  // Total Cotado é a soma de todas as referências do planejamento
   const totalQuoted = items.reduce((acc, i) => acc + i.estimatedPrice, 0);
-  const totalConfirmed = items.reduce((acc, i) => acc + i.actualPrice, 0);
+  
+  // Total Confirmado soma APENAS os itens marcados como Confirmado
+  const totalConfirmed = items
+    .filter(i => i.status === ItemStatus.CONFIRMED)
+    .reduce((acc, i) => acc + i.actualPrice, 0);
 
   const handlePrint = () => {
     window.print();
@@ -118,7 +124,6 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
   const getStatusColor = (status: ItemStatus) => {
     switch (status) {
       case ItemStatus.CONFIRMED: return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      case ItemStatus.QUOTED: return 'bg-amber-100 text-amber-700 border-amber-200';
       default: return 'bg-slate-100 text-slate-600 border-slate-200';
     }
   };
@@ -237,7 +242,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
         </div>
       </div>
 
-      {/* Summary Cards - Adjusted for Cotado/Confirmado */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 no-print">
         <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 ring-2 ring-amber-50">
           <p className="text-xs font-bold text-amber-500 uppercase tracking-widest mb-1">Total Cotado (Referência)</p>
@@ -248,7 +253,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
         <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 ring-4 ring-emerald-50">
           <p className="text-xs font-bold text-emerald-500 uppercase tracking-widest mb-1">Total Confirmado (Pago)</p>
           <h3 className="text-3xl font-black text-emerald-600">R$ {totalConfirmed.toLocaleString('pt-BR')}</h3>
-          <p className="text-[10px] text-emerald-400 mt-2">Valores efetivamente autorizados/pagos</p>
+          <p className="text-[10px] text-emerald-400 mt-2">Valores de itens com status "Confirmado"</p>
         </div>
       </div>
 
@@ -260,6 +265,21 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
               <ListFilter className="w-5 h-5 text-blue-500" />
               Itens do Orçamento
             </h3>
+            <div className="flex gap-2">
+              {(['TODOS', ...Object.values(ItemStatus)] as const).map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setStatusFilter(status)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                    statusFilter === status 
+                      ? 'bg-blue-500 text-white shadow-md' 
+                      : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                  }`}
+                >
+                  {status === 'TODOS' ? 'Todos' : status}
+                </button>
+              ))}
+            </div>
           </div>
           <button 
             onClick={() => setShowItemForm(true)}
@@ -350,17 +370,17 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
                       </div>
                     </div>
 
-                    {/* Observation Field for Discrepancy */}
-                    {hasDiscrepancy && (
+                    {/* Justificativa automática se houver diferença e item for confirmado */}
+                    {hasDiscrepancy && item.status === ItemStatus.CONFIRMED && (
                       <div className="mt-4 p-4 bg-amber-50 border border-amber-100 rounded-2xl animate-in slide-in-from-top-2 duration-300">
                         <div className="flex items-center gap-2 mb-2 text-amber-700">
                           <AlertCircle className="w-4 h-4" />
-                          <label className="text-[10px] font-bold uppercase tracking-widest">Motivo da diferença de valores</label>
+                          <label className="text-[10px] font-bold uppercase tracking-widest">Justificativa da diferença de valores</label>
                         </div>
                         <textarea
                           value={item.discrepancyNotes || ''}
                           onChange={(e) => handleUpdateItemField(item.id, 'discrepancyNotes', e.target.value)}
-                          placeholder="Informe por que o valor pago foi diferente da cotação..."
+                          placeholder="Por que o valor confirmado é diferente do cotado?"
                           className="w-full bg-white border-none rounded-xl p-3 text-sm text-slate-600 outline-none focus:ring-1 ring-amber-300"
                           rows={2}
                         />

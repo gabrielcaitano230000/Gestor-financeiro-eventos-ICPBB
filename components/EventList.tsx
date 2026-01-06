@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ChurchEvent } from '../types';
+import { ChurchEvent, ItemStatus } from '../types';
 import { Calendar, Clock, PlusCircle, CheckCircle, Ban } from 'lucide-react';
 
 interface EventListProps {
@@ -60,7 +60,12 @@ const EventList: React.FC<EventListProps> = ({ events, onSelectEvent, onAddEvent
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {sortedEvents.map((event) => {
             const totalQuoted = event.items.reduce((acc, i) => acc + i.estimatedPrice, 0);
-            const totalConfirmed = event.items.reduce((acc, i) => acc + i.actualPrice, 0);
+            
+            // Total confirmado só considera itens com status Confirmado
+            const totalConfirmed = event.items
+              .filter(i => i.status === ItemStatus.CONFIRMED)
+              .reduce((acc, i) => acc + i.actualPrice, 0);
+
             const statusInfo = getStatusDisplay(event);
             const localDate = parseLocalDatePicker(event.date);
 

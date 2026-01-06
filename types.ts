@@ -1,6 +1,5 @@
 
 export enum ItemStatus {
-  QUOTED = 'Cotado',
   CONFIRMED = 'Confirmado',
   PENDING = 'Pendente'
 }
@@ -29,9 +28,9 @@ export interface Budget {
   id: string;
   name: string;
   category: ItemCategory;
-  estimatedPrice: number; // Agora tratado como "Cotado"
-  actualPrice: number;    // Agora tratado como "Confirmado"
-  discrepancyNotes?: string; // Observação para diferença de valores
+  estimatedPrice: number; // Referência (Valor Cotado)
+  actualPrice: number;    // Valor Pago (Valor Confirmado)
+  discrepancyNotes?: string; 
   supplier: string;
   status: ItemStatus;
   notes?: string;

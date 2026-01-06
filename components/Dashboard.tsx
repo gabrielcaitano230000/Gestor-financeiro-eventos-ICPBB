@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { ChurchEvent } from '../types';
+import { ChurchEvent, ItemStatus } from '../types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { DollarSign, Calendar, TrendingUp, CheckCircle } from 'lucide-react';
 
@@ -15,23 +15,30 @@ const Dashboard: React.FC<DashboardProps> = ({ events }) => {
     const activeEvents = events.filter(e => e.status === 'active' || !e.status);
     const completedEvents = events.filter(e => e.status === 'completed');
     
+    // Calcula o total acumulado (confirmado)
     const totalBudget = events.reduce((acc, e) => {
-      return acc + e.items.reduce((iAcc, item) => iAcc + (item.actualPrice || item.estimatedPrice), 0);
+      return acc + e.items
+        .filter(item => item.status === ItemStatus.CONFIRMED)
+        .reduce((iAcc, item) => iAcc + item.actualPrice, 0);
     }, 0);
     
+    // Calcula o total deste ano (confirmado)
     const yearTotal = events.reduce((acc, e) => {
       const year = parseInt(e.date.split('-')[0]);
       if (year === new Date().getFullYear()) {
-        return acc + e.items.reduce((iAcc, item) => iAcc + (item.actualPrice || item.estimatedPrice), 0);
+        return acc + e.items
+          .filter(item => item.status === ItemStatus.CONFIRMED)
+          .reduce((iAcc, item) => iAcc + item.actualPrice, 0);
       }
       return acc;
     }, 0);
 
+    // Dados do gráfico focando no que está planejado (Cotado) para visão de teto
     const chartData = events
       .filter(e => e.status !== 'cancelled')
       .map(e => ({
         name: e.name.length > 15 ? e.name.substring(0, 12) + '...' : e.name,
-        total: e.items.reduce((acc, i) => acc + (i.actualPrice || i.estimatedPrice), 0)
+        total: e.items.reduce((acc, i) => acc + i.estimatedPrice, 0)
       }))
       .sort((a, b) => b.total - a.total)
       .slice(0, 6);
@@ -49,17 +56,17 @@ const Dashboard: React.FC<DashboardProps> = ({ events }) => {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <header>
         <h2 className="text-3xl font-bold text-slate-800">Visão Geral</h2>
-        <p className="text-slate-500">Acompanhamento financeiro dos eventos do ano.</p>
+        <p className="text-slate-500">Acompanhamento financeiro dos gastos confirmados.</p>
       </header>
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-start justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Geral</p>
+            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Pago (Acumulado)</p>
             <h3 className="text-2xl font-bold text-slate-900 mt-1">R$ {stats.totalBudget.toLocaleString('pt-BR')}</h3>
             <p className="text-xs text-blue-600 mt-2 font-medium flex items-center gap-1">
-              <TrendingUp className="w-3 h-3" /> Histórico acumulado
+              <TrendingUp className="w-3 h-3" /> Histórico confirmado
             </p>
           </div>
           <div className="p-3 bg-blue-50 rounded-2xl text-blue-600">
@@ -69,7 +76,7 @@ const Dashboard: React.FC<DashboardProps> = ({ events }) => {
 
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-start justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Este Ano</p>
+            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Pago (Este Ano)</p>
             <h3 className="text-2xl font-bold text-slate-900 mt-1">R$ {stats.yearTotal.toLocaleString('pt-BR')}</h3>
             <p className="text-xs text-emerald-600 mt-2 font-medium flex items-center gap-1">
               <Calendar className="w-3 h-3" /> Ano: {new Date().getFullYear()}
@@ -106,7 +113,7 @@ const Dashboard: React.FC<DashboardProps> = ({ events }) => {
       {/* Chart Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-          <h4 className="text-lg font-bold text-slate-800 mb-6">Investimento por Evento (Maiores)</h4>
+          <h4 className="text-lg font-bold text-slate-800 mb-6">Investimento Planejado por Evento (Cotado)</h4>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats.chartData}>
@@ -128,7 +135,7 @@ const Dashboard: React.FC<DashboardProps> = ({ events }) => {
         </div>
 
         <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center justify-center">
-          <h4 className="text-lg font-bold text-slate-800 mb-6 self-start">Distribuição Financeira</h4>
+          <h4 className="text-lg font-bold text-slate-800 mb-6 self-start">Distribuição de Orçamentos</h4>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
