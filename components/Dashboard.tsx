@@ -8,7 +8,7 @@ interface DashboardProps {
   events: ChurchEvent[];
 }
 
-const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981'];
+const COLORS = ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#f59e0b', '#10b981'];
 
 const Dashboard: React.FC<DashboardProps> = ({ events }) => {
   const stats = useMemo(() => {
@@ -46,11 +46,11 @@ const Dashboard: React.FC<DashboardProps> = ({ events }) => {
           <div>
             <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Geral</p>
             <h3 className="text-2xl font-bold text-slate-900 mt-1">R$ {stats.totalBudget.toLocaleString('pt-BR')}</h3>
-            <p className="text-xs text-indigo-600 mt-2 font-medium flex items-center gap-1">
+            <p className="text-xs text-blue-600 mt-2 font-medium flex items-center gap-1">
               <TrendingUp className="w-3 h-3" /> Histórico acumulado
             </p>
           </div>
-          <div className="p-3 bg-indigo-50 rounded-2xl text-indigo-600">
+          <div className="p-3 bg-blue-50 rounded-2xl text-blue-600">
             <DollarSign className="w-6 h-6" />
           </div>
         </div>

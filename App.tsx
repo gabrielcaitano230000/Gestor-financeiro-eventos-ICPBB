@@ -116,7 +116,7 @@ const NewEventModal: React.FC<NewEventModalProps> = ({ onClose, onSubmit }) => {
               value={name}
               placeholder="Ex: Conferência de Jovens"
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 outline-none focus:ring-2 ring-indigo-500 text-lg font-medium"
+              className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 outline-none focus:ring-2 ring-blue-500 text-lg font-medium"
             />
           </div>
 
@@ -126,7 +126,7 @@ const NewEventModal: React.FC<NewEventModalProps> = ({ onClose, onSubmit }) => {
               type="date" 
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 outline-none focus:ring-2 ring-indigo-500"
+              className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 outline-none focus:ring-2 ring-blue-500"
             />
           </div>
 
@@ -137,14 +137,14 @@ const NewEventModal: React.FC<NewEventModalProps> = ({ onClose, onSubmit }) => {
               rows={3}
               placeholder="Descreva o propósito ou local do evento..."
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 outline-none focus:ring-2 ring-indigo-500 resize-none"
+              className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 outline-none focus:ring-2 ring-blue-500 resize-none"
             />
           </div>
 
           <button 
             disabled={!name || !date}
             onClick={() => onSubmit(name, date, description)}
-            className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+            className="w-full py-4 bg-blue-500 text-white font-bold rounded-2xl shadow-lg shadow-blue-100 hover:bg-blue-600 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
           >
             Criar Planejamento
           </button>

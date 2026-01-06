@@ -137,7 +137,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
           <button
             onClick={fetchAdvice}
             disabled={isAnalyzing}
-            className="flex items-center gap-2 bg-indigo-50 text-indigo-600 px-5 py-3 rounded-2xl font-bold hover:bg-indigo-100 transition-all active:scale-95 disabled:opacity-50"
+            className="flex items-center gap-2 bg-blue-50 text-blue-600 px-5 py-3 rounded-2xl font-bold hover:bg-blue-100 transition-all active:scale-95 disabled:opacity-50"
           >
             <Sparkles className={`w-5 h-5 ${isAnalyzing ? 'animate-pulse' : ''}`} />
             {isAnalyzing ? 'Analisando...' : 'IA Assistente'}
@@ -181,12 +181,35 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
         </div>
       </div>
 
+      {/* AI Advice Banner */}
+      {advice && (
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white p-8 rounded-[2rem] shadow-xl no-print">
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-white/20 rounded-2xl">
+              <Sparkles className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold mb-3">Sugestões do Assistente Gemini</h3>
+              <div className="text-blue-50 prose prose-invert max-w-none whitespace-pre-wrap leading-relaxed">
+                {advice}
+              </div>
+              <button 
+                onClick={() => setAdvice(null)}
+                className="mt-6 text-xs font-bold uppercase tracking-widest text-white/60 hover:text-white transition-colors"
+              >
+                Fechar Sugestões
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Item List Header and Tabs */}
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-8 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex flex-col gap-4">
             <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-              <ListFilter className="w-5 h-5 text-indigo-500" />
+              <ListFilter className="w-5 h-5 text-blue-500" />
               Gestão de Cotações
             </h3>
             <div className="flex flex-wrap gap-2 no-print">
@@ -196,7 +219,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
                   onClick={() => setStatusFilter(status)}
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                     statusFilter === status 
-                      ? 'bg-indigo-600 text-white shadow-md' 
+                      ? 'bg-blue-500 text-white shadow-md' 
                       : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
                   }`}
                 >
@@ -210,7 +233,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
           </div>
           <button 
             onClick={() => setShowItemForm(true)}
-            className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all active:scale-95 no-print"
+            className="flex items-center justify-center gap-2 bg-blue-500 text-white px-6 py-3 rounded-2xl font-bold hover:bg-blue-600 shadow-lg shadow-blue-100 transition-all active:scale-95 no-print"
           >
             <Plus className="w-5 h-5" />
             Adicionar Item
@@ -264,7 +287,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
                           type="number"
                           value={item.estimatedPrice}
                           onChange={(e) => handleUpdateItemField(item.id, 'estimatedPrice', parseFloat(e.target.value) || 0)}
-                          className="bg-transparent font-medium text-slate-600 w-full outline-none focus:border-b border-indigo-200 no-print"
+                          className="bg-transparent font-medium text-slate-600 w-full outline-none focus:border-b border-blue-200 no-print"
                         />
                         <span className="print-only">{item.estimatedPrice}</span>
                       </div>
@@ -334,8 +357,8 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
                             onClick={() => handleUpdateItemField(item.id, 'paymentPlan', plan)}
                             className={`flex-1 py-2 px-3 rounded-xl text-[10px] font-bold border transition-all ${
                               item.paymentPlan === plan 
-                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-100' 
-                                : 'bg-white text-slate-400 border-slate-100 hover:border-indigo-200'
+                                ? 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-100' 
+                                : 'bg-white text-slate-400 border-slate-100 hover:border-blue-200'
                             }`}
                           >
                             {plan}
@@ -354,7 +377,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
                             min="2"
                             value={item.installmentsCount || 2}
                             onChange={(e) => handleUpdateItemField(item.id, 'installmentsCount', parseInt(e.target.value) || 2)}
-                            className="w-full bg-white border border-slate-100 rounded-xl pl-10 pr-4 py-2 text-sm font-bold outline-none focus:ring-1 ring-indigo-500"
+                            className="w-full bg-white border border-slate-100 rounded-xl pl-10 pr-4 py-2 text-sm font-bold outline-none focus:ring-1 ring-blue-500"
                           />
                         </div>
                       </div>
@@ -405,33 +428,6 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
         </div>
       </div>
 
-      {/* Report Header for Print - Repetition of information but styled for printer */}
-      <div className="print-only mt-10">
-        <h3 className="text-xl font-bold border-b pb-2 mb-4">Lista Detalhada de Itens</h3>
-        <div className="space-y-4">
-          {items.map(item => (
-            <div key={item.id} className="border-b pb-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-bold">{item.name} ({item.category})</p>
-                  <p className="text-xs text-slate-500">Status: {item.status} | Fornecedor: {item.supplier || 'N/A'}</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold">Real: R$ {item.actualPrice.toLocaleString('pt-BR')}</p>
-                  <p className="text-xs text-slate-400">Estimado: R$ {item.estimatedPrice.toLocaleString('pt-BR')}</p>
-                </div>
-              </div>
-              {item.status === ItemStatus.CONFIRMED && item.paymentMethod && (
-                <div className="mt-2 text-xs italic bg-slate-50 p-2 rounded">
-                  Pagamento: {item.paymentMethod} ({item.paymentPlan}) 
-                  {item.paymentMethod === PaymentMethod.REIMBURSEMENT && ` | Para: ${item.reimbursementRecipient} - ${item.reimbursementDetails}`}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Modal - Add Item */}
       {showItemForm && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-6 no-print">
@@ -445,7 +441,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
                   value={newItem.name}
                   placeholder="Ex: Aluguel de Som"
                   onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                  className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3 outline-none focus:ring-2 ring-indigo-500"
+                  className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3 outline-none focus:ring-2 ring-blue-500"
                 />
               </div>
               
@@ -455,7 +451,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
                   <select 
                     value={newItem.category}
                     onChange={(e) => setNewItem({ ...newItem, category: e.target.value as ItemCategory })}
-                    className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3 outline-none focus:ring-2 ring-indigo-500"
+                    className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3 outline-none focus:ring-2 ring-blue-500"
                   >
                     {Object.values(ItemCategory).map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -466,7 +462,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
                     type="number" 
                     value={newItem.estimatedPrice}
                     onChange={(e) => setNewItem({ ...newItem, estimatedPrice: parseFloat(e.target.value) })}
-                    className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3 outline-none focus:ring-2 ring-indigo-500"
+                    className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3 outline-none focus:ring-2 ring-blue-500"
                   />
                 </div>
               </div>
@@ -478,7 +474,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
                   value={newItem.supplier}
                   placeholder="Ex: LocaSom LTDA"
                   onChange={(e) => setNewItem({ ...newItem, supplier: e.target.value })}
-                  className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3 outline-none focus:ring-2 ring-indigo-500"
+                  className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3 outline-none focus:ring-2 ring-blue-500"
                 />
               </div>
 
@@ -491,7 +487,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
                 </button>
                 <button 
                   onClick={handleAddItem}
-                  className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95"
+                  className="flex-1 py-3 bg-blue-500 text-white font-bold rounded-2xl shadow-lg shadow-blue-100 hover:bg-blue-600 transition-all active:scale-95"
                 >
                   Confirmar
                 </button>

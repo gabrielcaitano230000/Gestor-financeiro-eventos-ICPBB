@@ -50,20 +50,20 @@ const EventList: React.FC<EventListProps> = ({ events, onSelectEvent }) => {
               <button
                 key={event.id}
                 onClick={() => onSelectEvent(event)}
-                className="group text-left bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all duration-300 relative overflow-hidden"
+                className="group text-left bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-300 relative overflow-hidden"
               >
                 {/* Status Badge */}
                 <div className={`absolute top-0 right-0 px-4 py-1.5 rounded-bl-2xl text-[10px] font-bold uppercase tracking-widest ${
-                  isFinished ? 'bg-slate-100 text-slate-500' : 'bg-indigo-600 text-white'
+                  isFinished ? 'bg-slate-100 text-slate-500' : 'bg-blue-500 text-white'
                 }`}>
                   {isFinished ? 'Finalizado' : 'Em Planejamento'}
                 </div>
 
                 <div className="mb-4">
-                   <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 mb-4 group-hover:scale-110 transition-transform">
+                   <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-500 mb-4 group-hover:scale-110 transition-transform">
                     <Calendar className="w-6 h-6" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-800 mb-1 group-hover:text-indigo-600 transition-colors">{event.name}</h3>
+                  <h3 className="text-xl font-bold text-slate-800 mb-1 group-hover:text-blue-600 transition-colors">{event.name}</h3>
                   <div className="flex items-center gap-2 text-slate-400 text-sm">
                     <Clock className="w-4 h-4" />
                     <span>{new Date(event.date).toLocaleDateString('pt-BR')}</span>
@@ -82,8 +82,8 @@ const EventList: React.FC<EventListProps> = ({ events, onSelectEvent }) => {
                   
                   {!isFinished ? (
                     <div className="text-right">
-                      <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-tighter block">Faltam</span>
-                      <span className="text-2xl font-black text-indigo-600">{daysLeft} <span className="text-sm font-medium">dias</span></span>
+                      <span className="text-[10px] font-bold text-blue-400 uppercase tracking-tighter block">Faltam</span>
+                      <span className="text-2xl font-black text-blue-500">{daysLeft} <span className="text-sm font-medium">dias</span></span>
                     </div>
                   ) : (
                     <div className="text-right">
