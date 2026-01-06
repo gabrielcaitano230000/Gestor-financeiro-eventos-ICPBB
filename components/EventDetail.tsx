@@ -3,11 +3,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ChurchEvent, Budget, ItemStatus, ItemCategory, PaymentMethod, PaymentPlan } from '../types';
 import { 
   ArrowLeft, Plus, Trash2, Printer, 
-  CheckCircle, Clock, AlertTriangle, 
-  Sparkles, FileText, CreditCard, User, 
-  Wallet, Layers, ListFilter
+  FileText, CreditCard, User, 
+  Wallet, Layers, ListFilter, Edit3, Save, X
 } from 'lucide-react';
-import { getBudgetAdvice } from '../services/geminiService';
 
 interface EventDetailProps {
   event: ChurchEvent;
@@ -19,9 +17,13 @@ interface EventDetailProps {
 const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent, onDeleteEvent }) => {
   const [items, setItems] = useState<Budget[]>(event.items);
   const [showItemForm, setShowItemForm] = useState(false);
-  const [advice, setAdvice] = useState<string | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [statusFilter, setStatusFilter] = useState<ItemStatus | 'TODOS'>('TODOS');
+  
+  // States for Editing Event Header
+  const [isEditingHeader, setIsEditingHeader] = useState(false);
+  const [editName, setEditName] = useState(event.name);
+  const [editDate, setEditDate] = useState(event.date);
+  const [editDescription, setEditDescription] = useState(event.description);
 
   const [newItem, setNewItem] = useState<Partial<Budget>>({
     name: '',
@@ -35,6 +37,23 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
   useEffect(() => {
     setItems(event.items);
   }, [event]);
+
+  // Função auxiliar para criar data local sem erro de fuso horário
+  const parseLocalDatePicker = (dateString: string) => {
+    if (!dateString) return new Date();
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
+
+  const handleUpdateHeader = () => {
+    onUpdateEvent({
+      ...event,
+      name: editName,
+      date: editDate,
+      description: editDescription
+    });
+    setIsEditingHeader(false);
+  };
 
   const handleAddItem = () => {
     if (!newItem.name) return;
@@ -66,7 +85,6 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
     const updatedItems = items.map(i => {
       if (i.id === id) {
         const updated = { ...i, status };
-        // Initialize payment fields if confirmed and they don't exist
         if (status === ItemStatus.CONFIRMED && !i.paymentMethod) {
           updated.paymentMethod = PaymentMethod.DIRECT;
           updated.paymentPlan = PaymentPlan.FULL;
@@ -88,20 +106,12 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
     return items.filter(i => i.status === statusFilter);
   }, [items, statusFilter]);
 
-  // Totals calculations
   const totalEstimated = items.reduce((acc, i) => acc + i.estimatedPrice, 0);
   const totalQuoted = items.filter(i => i.status === ItemStatus.QUOTED || i.status === ItemStatus.CONFIRMED).reduce((acc, i) => acc + i.actualPrice, 0);
   const totalConfirmed = items.filter(i => i.status === ItemStatus.CONFIRMED).reduce((acc, i) => acc + i.actualPrice, 0);
 
   const handlePrint = () => {
     window.print();
-  };
-
-  const fetchAdvice = async () => {
-    setIsAnalyzing(true);
-    const result = await getBudgetAdvice(event);
-    setAdvice(result || null);
-    setIsAnalyzing(false);
   };
 
   const getStatusColor = (status: ItemStatus) => {
@@ -112,37 +122,81 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
     }
   };
 
+  const localDateStr = parseLocalDatePicker(event.date).toLocaleDateString('pt-BR');
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 pb-20">
       {/* Navigation & Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 no-print">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 no-print bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
+        <div className="flex items-start gap-4 flex-1">
           <button 
             onClick={onBack}
-            className="p-3 hover:bg-white hover:shadow-md rounded-2xl transition-all"
+            className="p-3 hover:bg-slate-50 rounded-2xl transition-all mt-1"
           >
             <ArrowLeft className="w-6 h-6 text-slate-600" />
           </button>
-          <div>
-            <h2 className="text-3xl font-bold text-slate-800">{event.name}</h2>
-            <div className="flex items-center gap-2 text-slate-500 text-sm">
-               <span>{new Date(event.date).toLocaleDateString('pt-BR')}</span>
-               <span>•</span>
-               <span className="font-medium">{event.description}</span>
+          
+          {isEditingHeader ? (
+            <div className="flex-1 space-y-4 pr-4">
+              <input 
+                type="text" 
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="text-3xl font-bold text-slate-800 w-full border-b-2 border-blue-500 outline-none pb-1"
+                placeholder="Nome do Evento"
+              />
+              <div className="flex gap-4">
+                <input 
+                  type="date" 
+                  value={editDate}
+                  onChange={(e) => setEditDate(e.target.value)}
+                  className="bg-slate-50 px-3 py-2 rounded-xl outline-none text-slate-600 font-medium"
+                />
+              </div>
+              <textarea 
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                className="w-full bg-slate-50 p-3 rounded-xl outline-none text-slate-600 text-sm resize-none"
+                rows={2}
+                placeholder="Descrição do evento..."
+              />
+              <div className="flex gap-2">
+                <button 
+                  onClick={handleUpdateHeader}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg shadow-blue-100 hover:bg-blue-700"
+                >
+                  <Save className="w-4 h-4" /> Salvar Alterações
+                </button>
+                <button 
+                  onClick={() => setIsEditingHeader(false)}
+                  className="flex items-center gap-2 bg-slate-100 text-slate-600 px-4 py-2 rounded-xl font-bold text-sm hover:bg-slate-200"
+                >
+                  <X className="w-4 h-4" /> Cancelar
+                </button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex-1">
+              <div className="flex items-center gap-3">
+                <h2 className="text-3xl font-bold text-slate-800">{event.name}</h2>
+                <button 
+                  onClick={() => setIsEditingHeader(true)}
+                  className="p-1.5 text-slate-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
+                  title="Editar dados do evento"
+                >
+                  <Edit3 className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex items-center gap-2 text-slate-500 text-sm mt-1">
+                 <span className="font-semibold text-blue-600">{localDateStr}</span>
+                 <span>•</span>
+                 <span className="font-medium italic">{event.description || 'Sem descrição'}</span>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={fetchAdvice}
-            disabled={isAnalyzing}
-            className="flex items-center gap-2 bg-blue-50 text-blue-600 px-5 py-3 rounded-2xl font-bold hover:bg-blue-100 transition-all active:scale-95 disabled:opacity-50"
-          >
-            <Sparkles className={`w-5 h-5 ${isAnalyzing ? 'animate-pulse' : ''}`} />
-            {isAnalyzing ? 'Analisando...' : 'IA Assistente'}
-          </button>
-          
+        <div className="flex items-center gap-3 self-end md:self-start">
           <button
             onClick={handlePrint}
             className="flex items-center gap-2 bg-slate-100 text-slate-700 px-5 py-3 rounded-2xl font-bold hover:bg-slate-200 transition-all active:scale-95"
@@ -152,8 +206,9 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
           </button>
 
           <button
-            onClick={() => { if(confirm('Excluir este evento?')) { onDeleteEvent(event.id); onBack(); } }}
+            onClick={() => { if(confirm('Excluir este evento e todo o seu planejamento financeiro?')) { onDeleteEvent(event.id); onBack(); } }}
             className="p-3 bg-red-50 text-red-600 hover:bg-red-100 rounded-2xl transition-all active:scale-95"
+            title="Excluir Evento"
           >
             <Trash2 className="w-5 h-5" />
           </button>
@@ -165,44 +220,21 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Estimado</p>
           <h3 className="text-2xl font-black text-slate-700">R$ {totalEstimated.toLocaleString('pt-BR')}</h3>
-          <p className="text-[10px] text-slate-400 mt-2">Expectativa inicial</p>
+          <p className="text-[10px] text-slate-400 mt-2">Expectativa inicial baseada nos itens</p>
         </div>
 
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 ring-2 ring-amber-100">
           <p className="text-xs font-bold text-amber-500 uppercase tracking-widest mb-1">Total Cotado</p>
           <h3 className="text-2xl font-black text-amber-600">R$ {totalQuoted.toLocaleString('pt-BR')}</h3>
-          <p className="text-[10px] text-amber-400 mt-2">Valores pesquisados</p>
+          <p className="text-[10px] text-amber-400 mt-2">Valores reais pesquisados</p>
         </div>
 
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 ring-4 ring-emerald-50">
           <p className="text-xs font-bold text-emerald-500 uppercase tracking-widest mb-1">Total Confirmado</p>
           <h3 className="text-2xl font-black text-emerald-600">R$ {totalConfirmed.toLocaleString('pt-BR')}</h3>
-          <p className="text-[10px] text-emerald-400 mt-2">Pagamentos assumidos</p>
+          <p className="text-[10px] text-emerald-400 mt-2">Gastos oficiais para o evento</p>
         </div>
       </div>
-
-      {/* AI Advice Banner */}
-      {advice && (
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white p-8 rounded-[2rem] shadow-xl no-print">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-white/20 rounded-2xl">
-              <Sparkles className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold mb-3">Sugestões do Assistente Gemini</h3>
-              <div className="text-blue-50 prose prose-invert max-w-none whitespace-pre-wrap leading-relaxed">
-                {advice}
-              </div>
-              <button 
-                onClick={() => setAdvice(null)}
-                className="mt-6 text-xs font-bold uppercase tracking-widest text-white/60 hover:text-white transition-colors"
-              >
-                Fechar Sugestões
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Item List Header and Tabs */}
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
@@ -236,7 +268,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
             className="flex items-center justify-center gap-2 bg-blue-500 text-white px-6 py-3 rounded-2xl font-bold hover:bg-blue-600 shadow-lg shadow-blue-100 transition-all active:scale-95 no-print"
           >
             <Plus className="w-5 h-5" />
-            Adicionar Item
+            Novo Item
           </button>
         </div>
 
@@ -289,7 +321,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
                           onChange={(e) => handleUpdateItemField(item.id, 'estimatedPrice', parseFloat(e.target.value) || 0)}
                           className="bg-transparent font-medium text-slate-600 w-full outline-none focus:border-b border-blue-200 no-print"
                         />
-                        <span className="print-only">{item.estimatedPrice}</span>
+                        <span className="print-only font-semibold">{item.estimatedPrice}</span>
                       </div>
                     </div>
                     <div>
@@ -302,7 +334,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onBack, onUpdateEvent,
                           onChange={(e) => handleUpdateItemField(item.id, 'actualPrice', parseFloat(e.target.value) || 0)}
                           className="bg-amber-50/30 font-bold text-amber-700 w-full px-2 py-1 rounded-lg outline-none focus:ring-1 ring-amber-200 no-print"
                         />
-                        <span className="print-only">{item.actualPrice}</span>
+                        <span className="print-only font-bold text-amber-700">{item.actualPrice}</span>
                       </div>
                     </div>
                     <div>

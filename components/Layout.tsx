@@ -27,7 +27,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange, onAdd
             }`}
           >
             <LayoutDashboard className="w-5 h-5" />
-            <span className="font-medium">Dashboard</span>
+            <span className="font-medium">Visão Geral</span>
           </button>
           
           <button

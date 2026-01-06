@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { ChurchEvent } from '../types';
-import { Calendar, ChevronRight, Clock, MapPin, MoreHorizontal } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 
 interface EventListProps {
   events: ChurchEvent[];
@@ -9,8 +9,14 @@ interface EventListProps {
 }
 
 const EventList: React.FC<EventListProps> = ({ events, onSelectEvent }) => {
+  // Função auxiliar para criar data local sem erro de fuso horário
+  const parseLocalDatePicker = (dateString: string) => {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
+
   const getDaysRemaining = (dateString: string) => {
-    const eventDate = new Date(dateString);
+    const eventDate = parseLocalDatePicker(dateString);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const diffTime = eventDate.getTime() - today.getTime();
@@ -46,6 +52,9 @@ const EventList: React.FC<EventListProps> = ({ events, onSelectEvent }) => {
             const totalBudget = event.items.reduce((acc, i) => acc + (i.actualPrice || i.estimatedPrice), 0);
             const isFinished = daysLeft < 0;
 
+            // Formata a data ignorando UTC
+            const localDate = parseLocalDatePicker(event.date);
+
             return (
               <button
                 key={event.id}
@@ -66,7 +75,7 @@ const EventList: React.FC<EventListProps> = ({ events, onSelectEvent }) => {
                   <h3 className="text-xl font-bold text-slate-800 mb-1 group-hover:text-blue-600 transition-colors">{event.name}</h3>
                   <div className="flex items-center gap-2 text-slate-400 text-sm">
                     <Clock className="w-4 h-4" />
-                    <span>{new Date(event.date).toLocaleDateString('pt-BR')}</span>
+                    <span>{localDate.toLocaleDateString('pt-BR')}</span>
                   </div>
                 </div>
 

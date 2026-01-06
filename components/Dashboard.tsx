@@ -18,7 +18,8 @@ const Dashboard: React.FC<DashboardProps> = ({ events }) => {
     }, 0);
     
     const yearTotal = events.reduce((acc, e) => {
-      const year = new Date(e.date).getFullYear();
+      // Extrai o ano diretamente da string YYYY-MM-DD para evitar erro de fuso
+      const year = parseInt(e.date.split('-')[0]);
       if (year === new Date().getFullYear()) {
         return acc + e.items.reduce((iAcc, item) => iAcc + (item.actualPrice || item.estimatedPrice), 0);
       }
