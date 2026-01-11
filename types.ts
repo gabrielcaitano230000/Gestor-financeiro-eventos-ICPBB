@@ -28,8 +28,8 @@ export interface Budget {
   id: string;
   name: string;
   category: ItemCategory;
-  estimatedPrice: number; // Referência (Valor Cotado)
-  actualPrice: number;    // Valor Pago (Valor Confirmado)
+  estimatedPrice: number; 
+  actualPrice: number;    
   discrepancyNotes?: string; 
   supplier: string;
   status: ItemStatus;
@@ -51,6 +51,14 @@ export interface ChurchEvent {
   status: EventStatus;
 }
 
+export interface SyncState {
+  syncCode: string | null;
+  lastSynced: string | null;
+  isSyncing: boolean;
+  error: string | null;
+}
+
 export interface AppState {
   events: ChurchEvent[];
+  sync: SyncState;
 }
